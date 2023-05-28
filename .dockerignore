@@ -1,0 +1,9 @@
+.idea
+.git
+.dockerignore
+.gitignore
+docker-compose.yaml
+Dockerfile
+PHP Developer.Test Case.pdf
+README.md
+init.sql

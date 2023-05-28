@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+    depends_on:
+      - db
+    environment:
+      APP_DATABASE: 'pgsql:host=db;port=5432;dbname=notify;user=notify;password=secret'
+    volumes:
+      - ./:/app
+
+  notify:
+    build:
+      context: .
+    depends_on:
+      - db
+    environment:
+      APP_DATABASE: 'pgsql:host=db;port=5432;dbname=notify;user=notify;password=secret'
+    command:
+      - php
+      - src/notify.php
+
+  check:
+    build:
+      context: .
+    depends_on:
+      - db
+    environment:
+      APP_DATABASE: 'pgsql:host=db;port=5432;dbname=notify;user=notify;password=secret'
+    deploy:
+      mode: replicated
+      replicas: 30
+    command:
+      - php
+      - src/check.php
+
+  send:
+    build:
+      context: .
+    depends_on:
+      - db
+    environment:
+      APP_DATABASE: 'pgsql:host=db;port=5432;dbname=notify;user=notify;password=secret'
+    deploy:
+      mode: replicated
+      replicas: 10
+    command:
+      - php
+      - src/send.php
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: notify
+      POSTGRES_USER: notify
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+
+volumes:
+  pg_data:
